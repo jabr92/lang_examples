@@ -1,7 +1,7 @@
 import math
 
 class Sudoku(object):
-	# input strings are all 81 numerals long, serailized from left to right, top to bottom 
+	# input strings are 81 charcters long, serailized from left to right, top to bottom 
 	# with periods for blank spaces and no separator for rows
 
 	def rows(string):
@@ -17,28 +17,22 @@ class Sudoku(object):
 	@classmethod
 	def solve(self, puzzle_string):
 
-		# a unit refers to a row, column, or box
-
-		def unit_nums(i):
-			row_num = math.floor(i/9)
-			col_num = i % 9
+		def get_units(string, cell_num):
+			row_num = math.floor(cell_num/9)
+			col_num = cell_num % 9
 			boxes = self.boxes(list(range(81)))
 			for n in range(9):
-				if i in boxes[n]:
+				if cell_num in boxes[n]:
 					box_num = n
 					break
-			return row_num, col_num, box_num
+			return self.rows(string)[row_num], self.columns(string)[col_num], self.boxes(string)[box_num]
 
-		def get_units(string, i):
-			row, column, box = unit_nums(i)
-			return self.rows(string)[row], self.columns(string)[column], self.boxes(string)[box]
-
-		def check_if_determined(i, possibles):
-			for unit in get_units(list(range(81)), i):
+		def check_if_determined(cell_num, possibles):
+			for unit in get_units(list(range(81)), cell_num):
 				# ignore the cell's own possible values
-				unit.remove(i)
+				unit.remove(cell_num)
 				unit_possibles = set([n for l in [possibles[u] for u in unit] for n in l])
-				for p in possibles[i]:
+				for p in possibles[cell_num]:
 					if p not in unit_possibles:
 						# the cell must have value p
 						return p
@@ -47,70 +41,79 @@ class Sudoku(object):
 		def make_guess(possibles, solution, previous_guesses):
 			sort_func = lambda x: str(len(x[1])) + "-" + str(99 - possibles.count(x[1])) + "-" + str(x[0])
 			guesses = sorted([(i, possibles[i]) for i in range(81) if len(possibles[i]) > 1], key=sort_func)
-			i = j = 0
-			next = (guesses[i][0][j], guesses[i][1])
-			while next in [(g.n, g.i) for g in previous_guesses]:
-				if len(guesses[i][0]) > j + 1:
-					j += 1
-				else:
-					j = 0
+			previous = [g['cell_num'] for g in previous_guesses]
+			i = val_index = 0
+			next = guesses[i][0]
+
+			while next in previous:
+				if len(guesses[i][1]) > val_index + 1:
+					val_index += 1
+				elif i + 1 < len(guesses):
+					val_index = 0
 					i += 1
-				next = (guesses[i][0][j], guesses[i][1])
+				else: # out of guesses, go back up the guessing tree one step
+					print("going back one")
+					possibles, solution, previous_guesses = previous_guesses[-1]['possibles'], previous_guesses[-1]['solution'], previous_guesses[-1]['history']
+					return possibles, solution, previous_guesses
 
-			
+				next = guesses[i][0]
+
 			guess = {
-				'i': 
-				'n':
+				'cell_num': guesses[i][0],
+				'val': guesses[i][1][val_index],
 				'possibles': possibles,
-				'solution': solution
+				'solution': solution,
+				'history': previous_guesses
 			}
-			solution = solution[:i] + n + solution[i+1:]
-			possibles[i] = n
+			print("guessing  ", guess['cell_num'], "=", guess['val'])
+			solution = solution[:i] + guess['val'] + solution[i + 1:]
+			possibles[i] = guess['val']
 			previous_guesses.append(guess)
+		
 			return possibles, solution, previous_guesses
-
 
 		solution = puzzle_string
 		possibles, nums = [], "123456789"
 
 		for i in range(81):
 			if solution[i] == ".":
-				taken = [n for u in get_units(solution, i) for n in u]
-				taken = set([x for y in taken for x in y])
-				possibles.append([n for n in nums if n not in taken])
+				used = [n for u in get_units(solution, i) for n in u]
+				used = set([x for y in used for x in y])
+				possibles.append([n for n in nums if n not in used])
 			else:
 				possibles.append(solution[i]) 
 
 		must_guess = False
 		previous_guesses = []	
 
-		while "." in solution:(guesses[i][0][j], guesses[i][1])
+		while "." in solution:
 			if not must_guess:
 				must_guess = True
 				for i in range(81):
 					if solution[i] == ".":
-						check = check_if_determined(i, possibles)
-						if check:
-							print("determined", i, check)
-							solution = solution[:i] + check + solution[i+1:]
-							possibles[i] = check
+						val = check_if_determined(i, possibles)
+						if val:
+							print("determined", i, "=", val)
+							solution = solution[:i] + val + solution[i+1:]
+							possibles[i] = val
 							must_guess = False
 			else:
-				possibles, solution, previous_guesses = make_guess(possibles, solution, previous_guesses)				
-				
-
-
+				possibles, solution, previous_guesses =  make_guess(possibles, solution, previous_guesses)
+				must_guess = False
+					
 		return solution
 
 	@classmethod
 	def check_solution(self, puzzle_string, solution_string):
 		solution_matches_puzzle = all([puzzle_string[i] in (solution_string[i], ".") for i in range(81)])
+		print(self.is_valid_solution(solution_string), solution_matches_puzzle)
 		return self.is_valid_solution(solution_string) and solution_matches_puzzle
 
 	@classmethod
 	def is_valid_solution(self, solution_string):
 		
 		def check_unit(string):
+			print (string, sum([int(i) for i in string]))
 			return sum([int(i) for i in string]) == 45
 
 		funcs = [self.rows, self.columns, self.boxes]
