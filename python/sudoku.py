@@ -21,11 +21,7 @@ def boxes(puzzle_string):
 def units_of(puzzle_string, cell_num):
 	row_num = floor(cell_num/9)
 	col_num = cell_num % 9
-	all_boxes = boxes(list(range(81)))
-	for n in range(9):
-		if cell_num in all_boxes[n]:
-			box_num = n
-			break
+	box_num = floor(col_num/3) + 3*floor(row_num/3)
 	return rows(puzzle_string)[row_num], columns(puzzle_string)[col_num], boxes(puzzle_string)[box_num]
 
 def common_cells(cell_num):
@@ -121,7 +117,7 @@ if __name__=="__main__":
 		solution = solve(l)
 		check = check_solves(l, solution)
 		valid = is_valid_solution(solution)
-		print("problem", i, check, valid)
+		print("problem #", i, check, valid)
 		# print_board("p:", l)
 		# print_board("s:", solution)
 		if not (check and valid):
