@@ -1,12 +1,13 @@
 from math import floor
-import pdb, copy
+from copy import deepcopy
+
 # input strings are 81 charcters long, serailized from left to right, top to bottom 
 # with periods for blank spaces and no separator for rows
 
-def print_board(s, p):
-	for x in range(0, 81, 9):
-		print(s, [x  if is_determined(x) else "." for x in p[x:x+9]])
-	print("")
+all_cell_nums = list(range(81))
+
+def flatten_list(l):
+	return [x for y in l for x in y]
 
 def rows(puzzle_string):
 	return [puzzle_string[x:x+9] for x in range(0, 81, 9)]
@@ -25,7 +26,7 @@ def units_of(puzzle_string, cell_num):
 	return rows(puzzle_string)[row_num], columns(puzzle_string)[col_num], boxes(puzzle_string)[box_num]
 
 def common_cells(cell_num):
-	return set(x for y in units_of(list(range(81)), cell_num) for x in y if x != cell_num)
+	return set(x for x in flatten_list(units_of(all_cell_nums, cell_num)) if x != cell_num)
 
 def is_determined(val):
 	return isinstance(val, str)
@@ -44,11 +45,11 @@ def scan_possibles(possibles):
 	scan = True
 	while scan:
 		scan = False
-		for i in [x for x in range(81) if not is_determined(possibles[x])]:
-			for unit in units_of(list(range(81)), i):
+		for i in [x for x in all_cell_nums if not is_determined(possibles[x])]:
+			for unit in units_of(all_cell_nums, i):
 				# ignore the cell's own possible values
 				unit.remove(i)
-				unit_possibles = set(x for y in [possibles[u] for u in unit] for x in y)
+				unit_possibles = set(flatten_list([possibles[u] for u in unit]))
 				for p in possibles[i]:
 					if p not in unit_possibles:
 						possibles = set_val(possibles, i, p)
@@ -59,16 +60,16 @@ def solve(puzzle_string):
 	# print("solving", puzzle_string)
 	possibles, nums = [], "123456789"
 
-	for i in range(81):
+	for i in all_cell_nums:
 		val = puzzle_string[i]
 		if val == ".":
-			taken = set([x for y in units_of(puzzle_string, i) for x in y])	
+			taken = set(flatten_list(units_of(puzzle_string, i)))	
 			possibles.append([n for n in nums if n not in taken])
 		else:
 			possibles.append(val)
 
 	def has_duplicate_val(p):
-		for i in [x for x in range(81) if is_determined(p[x])]:
+		for i in [x for x in all_cell_nums if is_determined(p[x])]:
 			common_vals = [p[x] for x in common_cells(i) if is_determined(p[x])]
 			if p[i] in common_vals:
 				return True
@@ -83,10 +84,10 @@ def solve(puzzle_string):
 		if duplicate:
 			possibles = revert_points.pop()
 		else:
-			guess = sorted([(i, possibles[i]) for i in range(81) if not is_determined(possibles[i])], key=sort_func)[0]
+			guess = sorted([(i, possibles[i]) for i in all_cell_nums if not is_determined(possibles[i])], key=sort_func)[0]
 			cell_num, val = guess[0], guess[1][0]
 			# print("guessing  ", cell_num, "=", val)
-			revert = copy.deepcopy(possibles)
+			revert = deepcopy(possibles)
 			revert[cell_num].remove(val)
 			if len(revert[cell_num]) == 1:
 				revert = set_val(revert, cell_num, revert[cell_num][0])
@@ -98,7 +99,7 @@ def solve(puzzle_string):
 	return "".join(possibles)
 
 def check_solves(puzzle_string, solution_string):
-	return all([puzzle_string[i] in (solution_string[i], ".") for i in range(81)])
+	return all([puzzle_string[i] in (solution_string[i], ".") for i in all_cell_nums])
 
 def is_valid_solution(solution_string):
 	
@@ -118,7 +119,3 @@ if __name__=="__main__":
 		check = check_solves(l, solution)
 		valid = is_valid_solution(solution)
 		print("problem #", i, check, valid)
-		# print_board("p:", l)
-		# print_board("s:", solution)
-		if not (check and valid):
-			break
