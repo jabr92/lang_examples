@@ -1,20 +1,23 @@
 import Data.List.Split
 
-data Digit = 1|2|3|4|5|6|7|8|9
-type Cell = Maybe Digit
+type Cell = Maybe Char
+-- units are a row, column, or box
 type Unit = (Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell)
 type Grid = (Unit, Unit, Unit, Unit, Unit, Unit, Unit, Unit, Unit)
 
-fromString:: String -> Grid
-fromString s = map toUnits $ chunksOf 9 $ chunksOf 3 $ map toCell s
-	where toCell '.' = Nothing
-		  toCell  a  = Just (read a :: Int)
-		  toUnits (a:b:c:d:e:f:g:h:i) = ((a:d:g) (b:e:h) (c:f:i))
-		  
+listToNonuple (a:b:c:d:e:f:g:h:[i]) = (a, b, c, d, e, f, g, h, i)
 
-getUnits:: Cell -> (Unit, Unit, Unit)
+all_cell_nums = [1..81]
 
+gridFromString :: String -> Grid
+-- the grid is stored as a nonuple of rows
+gridFromString s = listToNonuple $ map listToNonuple $ chunksOf 9 $ map toCell s
+    where toCell '.' = Nothing
+          toCell a   = Just a
 
+getUnits :: Cell -> Grid -> (Unit, Unit, Unit)
+getUnits _ = undefined
 
 main = do
-	let test = ".................85.7.1..2...........3...6.....9..523..6...3.1...18...54.4.69...7"
+    let test = ".................85.7.1..2...........3...6.....9..523..6...3.1...18...54.4.69...7"
+    putStrLn . show $ gridFromString test
