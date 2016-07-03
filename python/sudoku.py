@@ -1,9 +1,6 @@
 from math import floor
 from copy import deepcopy
 
-# input strings are 81 charcters long, serailized from left to right, top to bottom 
-# with periods for blank spaces and no separator for rows
-
 # the solution state is stored as a list where
 # unknown cells are a list of possible values and known cells are a single character
 is_determined = lambda val: isinstance(val, str)
@@ -22,9 +19,10 @@ def boxes(p):
 	return [p[b:b+3] + p[b+9:b+12] + p[b+18:b+21] for b in box_start]
 
 def units_of(p, cell_num):
-	row_num = floor(cell_num/9)
+	row_num = int(floor(cell_num/9))
 	col_num = cell_num % 9
-	box_num = floor(col_num/3) + 3*floor(row_num/3)
+	box_num = int(floor(col_num/3) + 3*floor(row_num/3))
+	print(row_num, col_num, box_num)
 	return rows(p)[row_num], columns(p)[col_num], boxes(p)[box_num]
 
 def common_cells(cell_num):
