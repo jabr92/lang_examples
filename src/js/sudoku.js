@@ -1,14 +1,14 @@
 total_cells = 81;
-possible_vals = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+possible_vals = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
 var row_num = function(cell_num) {
-    return Math.floor(cell_num / 9)
+    return Math.floor(cell_num / 9);
 }
 var col_num = function(cell_num) {
-    return cell_num % 9
+    return cell_num % 9;
 }
 var box_num = function(cell_num) {
-    return Math.floor(col_num(cell_num) / 3) + 3 * Math.floor(row_num(cell_num / 3))
+    return Math.floor(col_num(cell_num) / 3) + 3 * Math.floor(row_num(cell_num / 3));
 }
 
 var solve_sudoku = function(puzzle_string) {
@@ -40,14 +40,14 @@ var solve_sudoku = function(puzzle_string) {
     var get_val = function(cell_num){
         r = row_num(cell_num);
         c = col_num(cell_num);
-        return rows[r][c]
+        return rows[r][c];
     }
 
     var get_units = function(cell_num){
         r = row_num(cell_num);
         c = col_num(cell_num);
         b = box_num(cell_num);
-        return [rows[r], columns[c], boxes[b]]
+        return [rows[r], columns[c], boxes[b]];
     }
 
     var scan_values = function() {
